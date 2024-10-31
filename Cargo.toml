@@ -1,0 +1,3 @@
+[workspace]
+members = ["moq-worker", "moq-worklet"]
+resolver = "2"
