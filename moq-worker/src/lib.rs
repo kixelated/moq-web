@@ -1,14 +1,12 @@
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen]
-extern "C" {
-    fn alert(s: &str);
-}
+mod publish;
+mod session;
+mod watch;
 
-#[wasm_bindgen]
-pub fn greet(name: &str) {
-    alert(&format!("Hello, {}!", name));
-}
+pub use publish::*;
+pub use session::*;
+pub use watch::*;
 
 #[wasm_bindgen(start)]
 pub fn start() -> Result<(), JsValue> {

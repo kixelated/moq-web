@@ -13,6 +13,7 @@
     "dev": "rspack serve"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@rspack/cli": "^1.0.14",
     "@rspack/core": "^1.0.14",
     "@wasm-tool/wasm-pack-plugin": "^1.5.0",
