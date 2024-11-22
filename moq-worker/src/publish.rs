@@ -12,7 +12,7 @@ pub struct Publish {
 #[wasm_bindgen]
 impl Publish {
     #[wasm_bindgen(constructor)]
-    pub fn new(session: Session, path: Vec<String>) -> Self {
+    pub fn new(addr: &str) -> Self {
         Self { session }
     }
 

@@ -3,20 +3,53 @@ use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 use wasm_bindgen::{prelude::Closure, JsCast};
 use web_codecs::video::DecodedFrame;
 
-#[derive(Clone)]
+use crate::{Result, Run};
+
 pub struct Renderer {
+    decoded: web_codecs::video::Decoded,
+    animate: RenderAnimate,
+}
+
+impl Renderer {
+    pub fn new(
+        decoded: web_codecs::video::Decoded,
+        canvas: Option<web_sys::OffscreenCanvas>,
+    ) -> Self {
+        Self {
+            animate: RenderAnimate::new(canvas),
+            decoded,
+        }
+    }
+
+    pub fn update(&mut self, canvas: Option<web_sys::OffscreenCanvas>) {
+        self.animate.state.borrow_mut().canvas = canvas;
+    }
+}
+
+impl Run for Renderer {
+    async fn run(&mut self) -> Result<()> {
+        while let Some(frame) = self.decoded.next().await? {
+            self.animate.push(frame);
+        }
+
+        Ok(())
+    }
+}
+
+#[derive(Clone)]
+struct RenderAnimate {
     state: Rc<RefCell<RenderState>>,
 }
 
 struct RenderState {
     scheduled: bool,
-    canvas: web_sys::OffscreenCanvas,
+    canvas: Option<web_sys::OffscreenCanvas>,
     queue: VecDeque<DecodedFrame>,
     render: Option<Closure<dyn FnMut()>>,
 }
 
-impl Renderer {
-    pub fn new(canvas: web_sys::OffscreenCanvas) -> Self {
+impl RenderAnimate {
+    pub fn new(canvas: Option<web_sys::OffscreenCanvas>) -> Self {
         let state = Rc::new(RefCell::new(RenderState {
             scheduled: false,
             canvas,
@@ -24,18 +57,23 @@ impl Renderer {
             render: None,
         }));
 
-        let renderer = Renderer {
-            state: state.clone(),
-        };
+        let this = Self { state };
 
-        let mut renderer_clone = renderer.clone();
+        let mut cloned = this.clone();
         let f = Closure::wrap(Box::new(move || {
-            renderer_clone.render();
+            cloned.render();
         }) as Box<dyn FnMut()>);
 
-        state.borrow_mut().render = Some(f);
+        this.state.borrow_mut().render = Some(f);
+        this
+    }
 
-        Self { state }
+    pub fn push(&mut self, frame: DecodedFrame) {
+        let mut state = self.state.borrow_mut();
+        state.queue.push_back(frame);
+        drop(state);
+
+        self.schedule();
     }
 
     fn render(&mut self) {
@@ -47,7 +85,12 @@ impl Renderer {
             None => return,
         };
 
-        let canvas = &mut state.canvas;
+        let canvas = match &mut state.canvas {
+            Some(canvas) => canvas,
+            None => return,
+        };
+
+        // TODO don't change the canvas size?
         canvas.set_width(frame.display_width());
         canvas.set_height(frame.display_height());
 
@@ -72,11 +115,6 @@ impl Renderer {
         request_animation_frame(render);
 
         state.scheduled = true;
-    }
-
-    pub fn push(&mut self, frame: DecodedFrame) {
-        self.state.borrow_mut().queue.push_back(frame);
-        self.schedule();
     }
 }
 

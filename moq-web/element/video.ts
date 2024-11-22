@@ -4,8 +4,7 @@ import * as Moq from "..";
 // See: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video
 // Also: https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement
 export class MoqVideo extends HTMLElement implements HTMLVideoElement {
-	#session?: Promise<Moq.Session>;
-	#watch?: Promise<Moq.Watch>;
+	#watch?: Moq.Watch;
 	#canvas: OffscreenCanvas;
 
 	// Attributes with getters and setters.
@@ -25,12 +24,12 @@ export class MoqVideo extends HTMLElement implements HTMLVideoElement {
 	preload: "" | "none" | "metadata" | "auto" = "auto";
 
 	// Readonly properties.
-	readonly buffered = new TimeRanges();
+	readonly buffered = emptyRange();
 	readonly currentSrc = "";
 	readonly duration = 0;
 	readonly ended = false;
 	readonly error = null;
-	readonly played = new TimeRanges();
+	readonly played = emptyRange();
 	readonly videoHeight = 0;
 	readonly videoWidth = 0;
 
@@ -49,9 +48,9 @@ export class MoqVideo extends HTMLElement implements HTMLVideoElement {
 
 	// Currently unsupported readonly properties
 	readonly mediaKeys = null;
-	readonly remote = new RemotePlayback();
-	readonly textTracks = new TextTrackList();
-	readonly seekable = new TimeRanges();
+	readonly remote = emptyRemotePlayback();
+	readonly textTracks = emptyTextTracks();
+	readonly seekable = emptyRange();
 	readonly seeking = false;
 	readonly sinkId = "";
 
@@ -142,13 +141,7 @@ export class MoqVideo extends HTMLElement implements HTMLVideoElement {
 
 	// Actually supported methods
 	load() {
-		if (this.#session) {
-			this.#session.then((s) => s.close());
-		}
-
-		if (this.#watch) {
-			this.#watch.then((w) => w.close());
-		}
+		this.#watch?.close();
 
 		if (!this.#src) {
 			return;
@@ -164,26 +157,24 @@ export class MoqVideo extends HTMLElement implements HTMLVideoElement {
 		}
 
 		const addr = `${src.protocol}//${src.hostname}:${src.port || 443}`;
-		const path = src.pathname.split("/").filter((x) => x);
 
 		const paused = !this.autoplay && this.#paused;
 		const volume = this.#muted ? 0 : this.#volume;
 
-		this.#session = Moq.Session.connect(addr);
-		this.#watch = this.#session
-			.then(async (s) => s.watch(path))
-			.then(async (w) => {
-				// Set the initial state
-				await w.pause(paused);
-				await w.volume(volume);
-				await w.render(this.#canvas);
-				return w;
-			});
+		const watch = new Moq.Watch(addr);
+		this.#watch = watch;
+
+		// Set the initial state in this specific order.
+		(async () => {
+			await watch.pause(paused);
+			await watch.volume(volume);
+			await watch.render(this.#canvas);
+		})();
 	}
 
 	pause(): void {
 		this.#paused = true;
-		this.#watch?.then((w) => w.pause(true));
+		this.#watch?.pause(true);
 	}
 
 	async play(): Promise<void> {
@@ -254,7 +245,7 @@ export class MoqVideo extends HTMLElement implements HTMLVideoElement {
 
 		this.#muted = value;
 		const volume = this.#muted ? 0 : this.#volume;
-		this.#watch?.then((w) => w.volume(volume));
+		this.#watch?.volume(volume);
 	}
 
 	get volume() {
@@ -268,7 +259,7 @@ export class MoqVideo extends HTMLElement implements HTMLVideoElement {
 
 		this.#volume = value;
 		const volume = this.#muted ? 0 : this.#volume;
-		this.#watch?.then((w) => w.volume(volume));
+		this.#watch?.volume(volume);
 	}
 
 	// Attrbutes that will error when changed (unsupported).
@@ -344,4 +335,91 @@ export class MoqVideo extends HTMLElement implements HTMLVideoElement {
 	fastSeek(time: number): void {
 		throw new Error("Method not implemented.");
 	}
+}
+
+customElements.define("moq-video", MoqVideo);
+
+function emptyRange(): TimeRanges {
+	const invalid = () => {
+		throw new RangeError("Index is not in the allowed range.");
+	};
+
+	return {
+		length: 0,
+		start: invalid,
+		end: invalid,
+	};
+}
+
+function emptyRemotePlayback(): RemotePlayback {
+	return {
+		onconnect: null,
+		onconnecting: null,
+		ondisconnect: null,
+		state: "disconnected",
+		cancelWatchAvailability: (id?: number): Promise<void> => {
+			throw new Error("Function not implemented.");
+		},
+		prompt: (): Promise<void> => {
+			throw new Error("Function not implemented.");
+		},
+		watchAvailability: (
+			callback: RemotePlaybackAvailabilityCallback,
+		): Promise<number> => {
+			throw new Error("Function not implemented.");
+		},
+		addEventListener: <K extends keyof RemotePlaybackEventMap>(
+			type: K,
+			// biome-ignore lint/suspicious/noExplicitAny: interface
+			listener: (this: RemotePlayback, ev: RemotePlaybackEventMap[K]) => any,
+			options?: boolean | AddEventListenerOptions,
+		): void => {
+			throw new Error("Function not implemented.");
+		},
+		removeEventListener: <K extends keyof RemotePlaybackEventMap>(
+			type: K,
+			// biome-ignore lint/suspicious/noExplicitAny: interface
+			listener: (this: RemotePlayback, ev: RemotePlaybackEventMap[K]) => any,
+			options?: boolean | EventListenerOptions,
+		): void => {
+			throw new Error("Function not implemented.");
+		},
+		dispatchEvent: (event: Event): boolean => {
+			throw new Error("Function not implemented.");
+		},
+	};
+}
+
+function emptyTextTracks(): TextTrackList {
+	return {
+		length: 0,
+		onaddtrack: null,
+		onchange: null,
+		onremovetrack: null,
+		getTrackById: (id: string): TextTrack | null => {
+			throw new Error("Function not implemented.");
+		},
+		addEventListener: <K extends keyof TextTrackListEventMap>(
+			type: K,
+			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			listener: (this: TextTrackList, ev: TextTrackListEventMap[K]) => any,
+			options?: boolean | AddEventListenerOptions,
+		): void => {
+			throw new Error("Function not implemented.");
+		},
+		removeEventListener: <K extends keyof TextTrackListEventMap>(
+			type: K,
+			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+			listener: (this: TextTrackList, ev: TextTrackListEventMap[K]) => any,
+			options?: boolean | EventListenerOptions,
+		): void => {
+			throw new Error("Function not implemented.");
+		},
+		[Symbol.iterator]: (): ArrayIterator<TextTrack> => {
+			throw new Error("Function not implemented.");
+		},
+		dispatchEvent: (event: Event): boolean => {
+			throw new Error("Function not implemented.");
+		},
+	};
 }

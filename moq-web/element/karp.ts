@@ -5,8 +5,6 @@ export class MoqKarp extends HTMLElement {
 		return ["addr", "broadcast", "action", "muted", "blinded"];
 	}
 
-	#session?: Moq.Session;
-
 	#addr: string | null = null;
 	#room: string | null = null;
 	#name: string | null = null;
@@ -41,11 +39,6 @@ export class MoqKarp extends HTMLElement {
 		switch (name) {
 			case "addr":
 				this.#addr = value;
-
-				if (this.#session) {
-					this.#session.close();
-				}
-
 				break;
 			case "room":
 				this.#room = value;

@@ -1,53 +1,31 @@
 import * as Comlink from "comlink";
-import type * as Work from "./worker";
+import type * as Rust from "./worker";
 
 const worker = new Worker(new URL("./worker.ts", import.meta.url));
-const root: Comlink.Remote<Work.Root> = Comlink.wrap(worker);
 
-export class Session {
-	#inner: Comlink.Remote<Work.Session>;
-
-	constructor(inner: Comlink.Remote<Work.Session>) {
-		this.#inner = inner;
-	}
-
-	static async connect(addr: string): Promise<Session> {
-		const session = await root.connect(addr);
-		return new Session(session);
-	}
-
-	async watch(name: string[]): Promise<Watch> {
-		const watch = await this.#inner.watch(name);
-		return new Watch(watch);
-	}
-
-	async publish(name: string[]): Promise<Publish> {
-		const publish = await this.#inner.publish(name);
-		return new Publish(publish);
-	}
-
-	async close() {
-		await this.#inner.close();
-	}
-
-	async closed() {
-		await this.#inner.closed();
-	}
-}
+// Not 100% if this is the best solution, but Comlink was silently failing.
+// We wait until the worker is fully initialized before we return the proxy.
+const init: Promise<Comlink.Remote<Rust.Api>> = new Promise((resolve) => {
+	worker.onmessage = (event) => {
+		worker.onmessage = null;
+		const proxy: Comlink.Remote<Rust.Api> = Comlink.wrap(worker);
+		resolve(proxy);
+	};
+});
 
 export class Watch {
-	#inner: Comlink.Remote<Work.Watch>;
+	#inner: Promise<Comlink.Remote<Rust.Watch>>;
 
-	constructor(inner: Comlink.Remote<Work.Watch>) {
-		this.#inner = inner;
+	constructor(addr: string) {
+		this.#inner = init.then((api) => api.watch(addr));
 	}
 
 	async pause(value: boolean) {
-		await this.#inner.pause(value);
+		await (await this.#inner).pause(value);
 	}
 
 	async volume(value: number) {
-		await this.#inner.volume(value);
+		await (await this.#inner).volume(value);
 	}
 
 	async render(value: HTMLCanvasElement | OffscreenCanvas) {
@@ -56,39 +34,14 @@ export class Watch {
 				? value.transferControlToOffscreen()
 				: value;
 
-		await this.#inner.render(Comlink.transfer(canvas, [canvas]));
+		await (await this.#inner).render(Comlink.transfer(canvas, [canvas]));
 	}
 
 	async close() {
-		await this.#inner.close();
+		await (await this.#inner).close();
 	}
 
 	async closed() {
-		await this.#inner.closed();
-	}
-}
-
-export class Publish {
-	#inner: Comlink.Remote<Work.Publish>;
-
-	constructor(inner: Comlink.Remote<Work.Publish>) {
-		this.#inner = inner;
-	}
-
-	async render(value: HTMLCanvasElement | OffscreenCanvas) {
-		const canvas =
-			value instanceof HTMLCanvasElement
-				? value.transferControlToOffscreen()
-				: value;
-
-		await this.#inner.render(Comlink.transfer(canvas, [canvas]));
-	}
-
-	async close() {
-		await this.#inner.close();
-	}
-
-	async closed() {
-		await this.#inner.closed();
+		await (await this.#inner).closed();
 	}
 }
