@@ -16,7 +16,7 @@
   "include": [
     "moq-element/**/*.ts",
     "moq-demo/**/*.ts"
-  ],
+, "moq-web/element/video.ts", "moq-web/element/karp.ts", "moq-web/element/index.ts"  ],
   "exclude": [
     "node_modules",
     "dist"

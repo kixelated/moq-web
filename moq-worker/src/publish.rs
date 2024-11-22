@@ -1,34 +1,24 @@
 use wasm_bindgen::prelude::*;
 
-use moq_karp::moq_transfork;
 use web_sys::OffscreenCanvas;
 
-#[wasm_bindgen(getter_with_clone)]
-pub struct PublishConfig {
-    pub room: String,
-    pub name: String,
-    pub render: Option<OffscreenCanvas>,
-}
-
-#[wasm_bindgen]
-impl PublishConfig {
-    #[wasm_bindgen(constructor)]
-    pub fn new(room: String, name: String) -> PublishConfig {
-        PublishConfig {
-            room,
-            name,
-            render: None,
-        }
-    }
-}
+use crate::Session;
 
 #[wasm_bindgen]
 pub struct Publish {
-    session: moq_transfork::Session,
+    session: Session,
 }
 
+#[wasm_bindgen]
 impl Publish {
-    pub fn new(session: moq_transfork::Session, config: PublishConfig) -> Self {
+    #[wasm_bindgen(constructor)]
+    pub fn new(session: Session, path: Vec<String>) -> Self {
         Self { session }
     }
+
+    pub fn pause(&mut self, value: bool) {}
+
+    pub fn volume(&mut self, value: f64) {}
+
+    pub fn blind(&mut self, value: bool) {}
 }

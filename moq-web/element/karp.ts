@@ -1,11 +1,11 @@
-import * as Api from "../moq-worker";
+import type * as Moq from "..";
 
 export class MoqKarp extends HTMLElement {
 	static get observedAttributes() {
-		return ["addr", "room", "name", "action", "muted", "blinded"];
+		return ["addr", "broadcast", "action", "muted", "blinded"];
 	}
 
-	#session?: Api.Session;
+	#session?: Moq.Session;
 
 	#addr: string | null = null;
 	#room: string | null = null;
@@ -17,8 +17,6 @@ export class MoqKarp extends HTMLElement {
 	setAttr(name: string, oldValue: string | null, newValue: string | null) {}
 
 	connectedCallback() {
-		Api.init();
-
 		for (const name of MoqKarp.observedAttributes) {
 			const value = this.getAttribute(name);
 			if (value !== null) {
