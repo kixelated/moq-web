@@ -31,7 +31,7 @@ impl Video {
             .latency_optimized();
 
         if !video.description.is_empty() {
-            config = config.description(video.description.clone().into());
+            config = config.description(video.description.clone());
         }
 
         decoder.configure(&config)?;
