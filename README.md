@@ -1,9 +1,13 @@
-# moq-wasm
+# moq-web
 
-WASM bindings for [moq-rs](https://github.com/kixelated/moq-rs).
+To install dependencies:
 
-## Usage
+```bash
+npm install
 ```
-bun i
-bun dev
+
+To run:
+
+```bash
+npm run dev
 ```
