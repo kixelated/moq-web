@@ -17,8 +17,8 @@ tracing = "0.1"
 wasm-tracing = "0.2"
 gloo-net = "0.6"
 
-moq-karp = { version = "0.8", default-features = false }
-web-codecs = "0.2"
+moq-karp = "0.9"
+web-codecs = "0.3.1"
 web-transport-wasm = "0.4"
 tokio = { version = "1", features = ["sync"] }
 
@@ -53,4 +53,6 @@ features = [
 	"HtmlCanvasElement",
 	"HtmlImageElement",
 	"OffscreenCanvas",
+	"DedicatedWorkerGlobalScope",
+	"OffscreenCanvasRenderingContext2d",
 ]

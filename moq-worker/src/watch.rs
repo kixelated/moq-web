@@ -45,6 +45,8 @@ impl Watch {
                 status.0.send_modify(|status| {
                     status.error = err.to_string().into();
                 });
+            } else {
+                tracing::warn!("backend closed");
             }
         });
 
@@ -88,7 +90,8 @@ struct WatchBackend {
     controls: watch::Receiver<Controls>,
     status: watch::Sender<Status>,
 
-    broadcast: Option<moq_karp::consume::Broadcast>,
+    broadcast: Option<moq_karp::BroadcastConsumer>,
+    catalog: Option<moq_karp::Catalog>,
     decoder: Option<Decoder>,
     renderer: Option<Renderer>,
 }
@@ -101,6 +104,7 @@ impl WatchBackend {
             status,
 
             broadcast: None,
+            catalog: None,
             decoder: None,
             renderer: None,
         }
@@ -110,7 +114,9 @@ impl WatchBackend {
         let path = self.addr.path_segments().ok_or(Error::InvalidUrl)?;
         let path = moq_transfork::Path::from_iter(path);
         let session = super::session::connect(&self.addr).await?;
-        let mut resumable = moq_karp::consume::Resumable::new(session, path);
+        let mut room = moq_karp::Room::new(session, path).consume();
+
+        tracing::info!("connected to: {}", self.addr);
 
         self.status.send_modify(|status| {
             status.connected = true;
@@ -118,8 +124,14 @@ impl WatchBackend {
 
         loop {
             tokio::select! {
-                Some(broadcast) = resumable.broadcast() => {
-                    self.init(broadcast)?;
+                Some(broadcast) = room.broadcast() => {
+                    // TODO ignore lower IDs
+                    self.broadcast = Some(broadcast);
+                    self.catalog = None;
+                }
+                Some(catalog) = async { self.broadcast.as_mut()?.catalog().await.transpose() } => {
+                    self.catalog = Some(catalog?);
+                    self.init()?;
                 }
                 Err(err) = self.decoder.run() => return Err(err),
                 Err(err) = self.renderer.run() => return Err(err),
@@ -129,6 +141,7 @@ impl WatchBackend {
                     }
 
                     let controls = self.controls.borrow_and_update();
+                    tracing::debug!("controls changed: {:?}", &controls);
                     if controls.close {
                         return Ok(());
                     }
@@ -142,15 +155,16 @@ impl WatchBackend {
         }
     }
 
-    fn init(&mut self, broadcast: moq_karp::consume::Broadcast) -> Result<()> {
-        tracing::info!("loading broadcast: {:?}", broadcast.catalog());
+    fn init(&mut self) -> Result<()> {
+        let broadcast = self.broadcast.as_ref().unwrap();
+        let catalog = self.catalog.as_ref().unwrap();
 
-        if let Some(video) = broadcast.catalog().video.first() {
+        if let Some(video) = catalog.video.first() {
             tracing::info!("fetching video track: {:?}", video);
 
-            let (decoder, decoded) = web_codecs::video::decoder();
+            let (decoder, decoded) = web_codecs::video_decoder();
 
-            let mut config = web_codecs::video::DecoderConfig::new(video.codec.to_string())
+            let mut config = web_codecs::VideoDecoderConfig::new(video.codec.to_string())
                 .coded_dimensions(video.resolution.width as _, video.resolution.height as _)
                 .latency_optimized();
 
@@ -160,7 +174,7 @@ impl WatchBackend {
 
             decoder.configure(&config)?;
 
-            let track = broadcast.video(&video.track.name)?;
+            let track = broadcast.track(&video.track);
             let controls = self.controls.borrow();
 
             let decoder = Decoder::new(track, decoder);
@@ -173,7 +187,6 @@ impl WatchBackend {
             self.renderer = None;
         }
 
-        self.broadcast = Some(broadcast);
         Ok(())
     }
 }

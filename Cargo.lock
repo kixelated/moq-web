@@ -719,13 +719,12 @@ dependencies = [
 
 [[package]]
 name = "moq-karp"
-version = "0.8.0"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1c84b42dbdc0414b8a22f6521bbaa0fefa4913d393206803c40991d915f9e95"
+checksum = "3bbb0562bd1e194917a1b1d704f457b5b711ebc087edbc90fe15578b746f35c3"
 dependencies = [
  "bytes",
  "derive_more",
- "futures",
  "hex",
  "lazy_static",
  "moq-transfork",
@@ -742,9 +741,9 @@ dependencies = [
 
 [[package]]
 name = "moq-transfork"
-version = "0.4.3"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7bca71d1b85893f79ffc0dd9f1f25627019879ec6ae6cff398954862859f34a"
+checksum = "c1f34cf68baf255f0f00a4743d9631645607a5e04b9c36016fd2e05ae37e1cba"
 dependencies = [
  "bytes",
  "futures",
@@ -1673,9 +1672,9 @@ dependencies = [
 
 [[package]]
 name = "web-codecs"
-version = "0.2.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18753c7d6331956f697d9bc6515032c7967e0e3148dba4b1c286bb6a28e2d478"
+checksum = "fdecd23df1b556b95d441fbccc628ff2881d70442b494f80f8c35896440c5e73"
 dependencies = [
  "bytes",
  "js-sys",

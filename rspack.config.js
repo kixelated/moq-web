@@ -34,12 +34,12 @@ module.exports = {
                 exclude: /node_modules/,
 				loader: 'builtin:swc-loader',
 				options: {
-				jsc: {
-					parser: {
-						syntax: 'typescript',
-						},
-					},
-				},
+                    jsc: {
+                        parser: {
+                            syntax: 'typescript',
+                        },
+                    },
+                },
 				type: 'javascript/auto',
             },
 		],

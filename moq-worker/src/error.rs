@@ -10,14 +10,11 @@ pub enum Error {
     #[error("webtransport error: {0}")]
     WebTransport(#[from] web_transport::wasm::Error),
 
-    #[error("catalog error: {0}")]
-    Catalog(#[from] moq_karp::catalog::Error),
-
     #[error("webcodecs error: {0}")]
     WebCodecs(#[from] web_codecs::Error),
 
     #[error("karp error: {0}")]
-    Warp(#[from] moq_karp::Error),
+    Karp(#[from] moq_karp::Error),
 
     #[error("invalid url")]
     InvalidUrl,

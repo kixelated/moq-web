@@ -4,6 +4,8 @@ use url::Url;
 use crate::{Error, Result};
 
 pub async fn connect(addr: &Url) -> Result<moq_transfork::Session> {
+    tracing::info!("connecting to: {}", addr);
+
     if addr.scheme() != "https" {
         return Err(Error::InvalidUrl);
     }

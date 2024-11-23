@@ -156,12 +156,10 @@ export class MoqVideo extends HTMLElement implements HTMLVideoElement {
 			throw new Error("Unsupported username/password");
 		}
 
-		const addr = `${src.protocol}//${src.hostname}:${src.port || 443}`;
-
 		const paused = !this.autoplay && this.#paused;
 		const volume = this.#muted ? 0 : this.#volume;
 
-		const watch = new Moq.Watch(addr);
+		const watch = new Moq.Watch(this.#src);
 		this.#watch = watch;
 
 		// Set the initial state in this specific order.
