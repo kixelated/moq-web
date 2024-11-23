@@ -19,7 +19,7 @@ pub async fn connect(addr: &Url) -> Result<moq_transfork::Session> {
     // Until that gets fixed, we need to perform a HTTP request to fetch the certificate hashes.
     let session = match addr.host_str() {
         Some("localhost") => {
-            let fingerprint = fingerprint(&addr).await?;
+            let fingerprint = fingerprint(addr).await?;
             session.server_certificate_hashes(vec![fingerprint])
         }
         _ => session,

@@ -19,10 +19,7 @@ gloo-net = "0.6"
 
 moq-karp = "0.9"
 web-codecs = "0.3.1"
-web-transport-wasm = "0.4"
 tokio = { version = "1", features = ["sync"] }
-
-paste = "1"
 
 js-sys = "0.3.72"
 url = "2"

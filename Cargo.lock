@@ -763,7 +763,6 @@ dependencies = [
  "hex",
  "js-sys",
  "moq-karp",
- "paste",
  "thiserror",
  "tokio",
  "tracing",
@@ -773,7 +772,6 @@ dependencies = [
  "wasm-tracing",
  "web-codecs",
  "web-sys",
- "web-transport-wasm",
 ]
 
 [[package]]
