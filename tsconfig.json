@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
+    "outDir": "./dist",
     "noImplicitAny": true,
     "module": "ESNext",
     "target": "ESNext",
@@ -11,14 +11,22 @@
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "allowJs": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "declaration": true,
+    "sourceMap": true,
+    "emitDeclarationOnly": true,
   },
   "include": [
-    "moq-element/**/*.ts",
-    "moq-demo/**/*.ts"
-, "moq-web/element/video.ts", "moq-web/element/karp.ts", "moq-web/element/index.ts"  ],
+    "lib/**/*.ts",
+  ],
   "exclude": [
     "node_modules",
-    "dist"
-  ]
+    "dist",
+    "demo"
+  ],
+  "ts-node": {
+    "compilerOptions": {
+      "module": "CommonJS"
+    }
+  }
 }

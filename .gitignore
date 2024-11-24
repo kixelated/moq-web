@@ -1,4 +1,8 @@
 target/
 **/pkg/
 node_modules/
-dist/
+
+# We're using bun
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

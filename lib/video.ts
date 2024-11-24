@@ -1,4 +1,4 @@
-import * as Moq from "..";
+import * as Moq from ".";
 
 // Supports a subset of the <video> element API.
 // See: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video

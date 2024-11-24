@@ -1,6 +1,6 @@
 import * as Comlink from "comlink";
-import * as Rust from "../moq-worker/dist";
-export * from "../moq-worker/dist";
+import * as Rust from "../worker/dist";
+export * from "../worker/dist";
 
 export class Api {
 	async watch(addr: string): Promise<Rust.Watch & Comlink.ProxyMarked> {

@@ -1,13 +1,9 @@
 # moq-web
 
-To install dependencies:
+## Setup
+This project uses [Bun](https://bun.sh/) as its package manager.
 
 ```bash
-npm install
-```
-
-To run:
-
-```bash
-npm run dev
+bun install
+bun dev
 ```
