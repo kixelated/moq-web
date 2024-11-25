@@ -7,27 +7,35 @@
 		"url": "git+https://github.com/kixelated/moq-web.git"
 	},
 	"license": "(MIT OR Apache-2.0)",
-	"scripts": {
-		"dist": "rspack build --mode=production && cp ./LICENSE* ./README.md ./package.json ./dist",
-		"dev": "rspack serve",
-		"check": "biome check && cargo check && tsc --noEmit && rustfmt --check",
-		"fix": "biome check --write && cargo fmt && cargo clippy --fix --allow-dirty --allow-staged"
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./index.d.ts",
+			"import": "./index.js"
+		}
 	},
-	"devDependencies": {
-		"@biomejs/biome": "1.9.4",
-		"@rspack/cli": "^1.0.14",
-		"@rspack/core": "^1.0.14",
-		"@wasm-tool/wasm-pack-plugin": "^1.5.0",
-		"bun-types": "latest",
-		"esbuild": "^0.24.0",
-		"esbuild-register": "^3.6.0",
-		"fork-ts-checker-webpack-plugin": "^9.0.2",
-		"html-webpack-plugin": "^5.6.0",
-		"ts-node": "^10.9.2",
-		"typescript": "^5.6.3"
+	"module": "./index.js",
+	"types": "./index.d.ts",
+	"files": ["."],
+	"scripts": {
+		"pack": "wasm-pack build && rslib build && cp LICENSE* README.md package.json ./dist",
+		"lint": "biome check --write && cargo clippy --fix --allow-dirty --allow-staged",
+		"fmt": "biome format --write && cargo fmt",
+		"dev": "concurrently 'bun run dev:wasm' 'bun run dev:js'",
+		"dev:wasm": "cargo watch -s 'wasm-pack build --dev'",
+		"dev:js": "rslib build --watch"
 	},
 	"dependencies": {
 		"comlink": "^4.4.2"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.3",
+		"@microsoft/api-extractor": "^7.48.0",
+		"@rslib/core": "^0.1.0",
+		"bun-types": "latest",
+		"concurrently": "^9.1.0",
+		"typescript": "^5.6.3",
+		"wasm-pack": "^0.13.1"
 	},
 	"engines": {
 		"bun": "1",

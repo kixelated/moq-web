@@ -1,6 +1,18 @@
+# Local
+.DS_Store
+*.local
+*.log*
+
+# Dist
+node_modules
+dist/
+pkg/
 target/
-**/pkg/
-node_modules/
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea
 
 # We're using bun
 package-lock.json
