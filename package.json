@@ -2,19 +2,19 @@
 	"name": "@kixelated/moq",
 	"version": "0.2.0",
 	"type": "module",
-	"module": "./lib/index.js",
-	"types": "./lib/index.d.ts",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
 	"exports": {
 		".": {
-			"types": "./lib/index.d.ts",
-			"import": "./lib/index.js"
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
 		},
 		"./element/video": {
-			"import": "./lib/element/video.js",
-			"types": "./lib/element/video.d.ts"
+			"import": "./dist/element/video.js",
+			"types": "./dist/element/video.d.ts"
 		}
 	},
-	"files": ["lib", "pkg", "README.md", "LICENSE*"],
+	"files": ["dist", "pkg", "README.md", "LICENSE*"],
 	"scripts": {
 		"pack": "wasm-pack build --release && tsc",
 		"dev": "npm-run-all --parallel dev:*",
