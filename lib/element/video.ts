@@ -1,4 +1,4 @@
-import * as Moq from ".";
+import * as Moq from "..";
 
 // Supports a subset of the <video> element API.
 // See: https://developer.mozilla.org/en-US/docs/Web/HTML/Element/video
@@ -134,8 +134,6 @@ export class MoqVideo extends HTMLElement implements HTMLVideoElement {
 			case "muted":
 				this.muted = newValue !== null;
 				break;
-			default:
-				throw new Error(`Unsupported attribute: ${name}`);
 		}
 	}
 
@@ -159,7 +157,16 @@ export class MoqVideo extends HTMLElement implements HTMLVideoElement {
 		const paused = !this.autoplay && this.#paused;
 		const volume = this.#muted ? 0 : this.#volume;
 
-		const watch = new Moq.Watch(this.#src);
+		const server = `https://${src.host}`;
+		const parts = src.pathname.split("/");
+		if (parts.length !== 3) {
+			throw new Error("invalid path: must be /room/broadcast");
+		}
+
+		const room = parts[1];
+		const broadcast = parts[2];
+
+		const watch = new Moq.Watch(server, room, broadcast);
 		this.#watch = watch;
 
 		// Set the initial state in this specific order.
@@ -411,9 +418,6 @@ function emptyTextTracks(): TextTrackList {
 			listener: (this: TextTrackList, ev: TextTrackListEventMap[K]) => any,
 			options?: boolean | EventListenerOptions,
 		): void => {
-			throw new Error("Function not implemented.");
-		},
-		[Symbol.iterator]: (): ArrayIterator<TextTrack> => {
 			throw new Error("Function not implemented.");
 		},
 		dispatchEvent: (event: Event): boolean => {

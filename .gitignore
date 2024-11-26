@@ -5,9 +5,8 @@
 
 # Dist
 node_modules
-dist/
-pkg/
-target/
+pkg
+target
 
 # IDE
 .vscode/*

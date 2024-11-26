@@ -1,4 +1,4 @@
-import type * as Moq from ".";
+import type * as Moq from "..";
 
 export class MoqKarp extends HTMLElement {
 	static get observedAttributes() {

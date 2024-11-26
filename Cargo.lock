@@ -416,9 +416,9 @@ checksum = "8a9ee70c43aaf417c914396645a0fa852624801b24ebb7ae78fe8272889ac888"
 
 [[package]]
 name = "hashbrown"
-version = "0.15.1"
+version = "0.15.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a9bfc1af68b1726ea47d3d5109de126281def866b33970e10fbab11b5dafab3"
+checksum = "bf151400ff0baff5465007dd2f3e717f3fe502074ca563069ce3a6629d07b289"
 
 [[package]]
 name = "hermit-abi"
@@ -629,7 +629,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "707907fe3c25f5424cce2cb7e1cbcafee6bdbe735ca90ef77c29e84591e5b9da"
 dependencies = [
  "equivalent",
- "hashbrown 0.15.1",
+ "hashbrown 0.15.2",
  "serde",
 ]
 
@@ -722,8 +722,6 @@ dependencies = [
 [[package]]
 name = "moq-karp"
 version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3bbb0562bd1e194917a1b1d704f457b5b711ebc087edbc90fe15578b746f35c3"
 dependencies = [
  "bytes",
  "derive_more",
@@ -744,8 +742,6 @@ dependencies = [
 [[package]]
 name = "moq-transfork"
 version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1f34cf68baf255f0f00a4743d9631645607a5e04b9c36016fd2e05ae37e1cba"
 dependencies = [
  "bytes",
  "futures",
@@ -1699,10 +1695,9 @@ dependencies = [
 [[package]]
 name = "web-codecs"
 version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fdecd23df1b556b95d441fbccc628ff2881d70442b494f80f8c35896440c5e73"
 dependencies = [
  "bytes",
+ "derive_more",
  "js-sys",
  "thiserror 1.0.69",
  "tokio",

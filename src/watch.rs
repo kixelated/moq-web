@@ -1,6 +1,5 @@
 use tokio::sync::watch;
 
-use moq_karp::moq_transfork;
 use url::Url;
 use wasm_bindgen::prelude::*;
 
@@ -32,11 +31,12 @@ pub struct Watch {
 #[wasm_bindgen]
 impl Watch {
     #[wasm_bindgen(constructor)]
-    pub fn new(addr: &str) -> Result<Self> {
-        let addr = Url::parse(addr).map_err(|_| Error::InvalidUrl)?;
+    pub fn new(server: &str, room: String, broadcast: String) -> Result<Self> {
+        let server = Url::parse(server).map_err(|_| Error::InvalidUrl)?;
+
         let controls = watch::channel(Controls::default());
         let status = watch::channel(Status::default());
-        let mut backend = WatchBackend::new(addr, controls.1, status.0.clone());
+        let mut backend = WatchBackend::new(server, room, broadcast, controls.1, status.0.clone());
 
         spawn_local(async move {
             if let Err(err) = backend.run().await {
@@ -86,24 +86,36 @@ impl Watch {
 }
 
 struct WatchBackend {
-    addr: Url,
+    server: Url,
+    room: String,
+    broadcast: String,
+
     controls: watch::Receiver<Controls>,
     status: watch::Sender<Status>,
 
-    broadcast: Option<moq_karp::BroadcastConsumer>,
+    active: Option<moq_karp::BroadcastConsumer>,
     catalog: Option<moq_karp::Catalog>,
     decoder: Option<Decoder>,
     renderer: Option<Renderer>,
 }
 
 impl WatchBackend {
-    fn new(addr: Url, controls: watch::Receiver<Controls>, status: watch::Sender<Status>) -> Self {
+    fn new(
+        server: Url,
+        room: String,
+        broadcast: String,
+        controls: watch::Receiver<Controls>,
+        status: watch::Sender<Status>,
+    ) -> Self {
         Self {
-            addr,
+            server,
+            room,
+            broadcast,
+
             controls,
             status,
 
-            broadcast: None,
+            active: None,
             catalog: None,
             decoder: None,
             renderer: None,
@@ -111,12 +123,12 @@ impl WatchBackend {
     }
 
     async fn run(&mut self) -> Result<()> {
-        let path = self.addr.path_segments().ok_or(Error::InvalidUrl)?;
-        let path = moq_transfork::Path::from_iter(path);
-        let session = super::session::connect(&self.addr).await?;
-        let mut room = moq_karp::Room::new(session, path).consume();
+        let session = super::session::connect(&self.server).await?;
+        let room = moq_karp::Room::new(session, self.room.to_string());
 
-        tracing::info!("connected to: {}", self.addr);
+        let mut announced = room.watch(&self.broadcast);
+
+        tracing::info!(addr = ?self.server, ?room, broadcast = ?announced, "connected");
 
         self.status.send_modify(|status| {
             status.connected = true;
@@ -124,12 +136,14 @@ impl WatchBackend {
 
         loop {
             tokio::select! {
-                Some(broadcast) = room.broadcast() => {
+                Some(broadcast) = announced.broadcast() => {
+                    tracing::info!(?broadcast, "announced");
+
                     // TODO ignore lower IDs
-                    self.broadcast = Some(broadcast);
+                    self.active = Some(broadcast);
                     self.catalog = None;
                 }
-                Some(catalog) = async { self.broadcast.as_mut()?.catalog().await.transpose() } => {
+                Some(catalog) = async { self.active.as_mut()?.catalog().await.transpose() } => {
                     self.catalog = Some(catalog?);
                     self.init()?;
                 }
@@ -141,7 +155,6 @@ impl WatchBackend {
                     }
 
                     let controls = self.controls.borrow_and_update();
-                    tracing::debug!("controls changed: {:?}", &controls);
                     if controls.close {
                         return Ok(());
                     }
@@ -156,7 +169,7 @@ impl WatchBackend {
     }
 
     fn init(&mut self) -> Result<()> {
-        let broadcast = self.broadcast.as_ref().unwrap();
+        let broadcast = self.active.as_ref().unwrap();
         let catalog = self.catalog.as_ref().unwrap();
 
         if let Some(video) = catalog.video.first() {
